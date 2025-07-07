@@ -61,6 +61,10 @@ resource "aws_db_instance" "snyk_db" {
   tags = merge(var.default_tags, {
     Name = "snyk_db_${var.environment}"
   })
+  publicly_accessible                 = false
+  deletion_protection                 = true
+  iam_database_authentication_enabled = true
+  multi_az                            = true
 }
 
 resource "aws_ssm_parameter" "snyk_ssm_db_host" {
@@ -115,7 +119,7 @@ resource "aws_s3_bucket_public_access_block" "snyk_public" {
   bucket = aws_s3_bucket.my-new-undeployed-bucket.id
 
   block_public_acls   = false
-  ignore_public_acls = var.public_ignore_acl
+  ignore_public_acls  = var.public_ignore_acl
   block_public_policy = var.public_policy_control
 }
 
@@ -125,4 +129,16 @@ resource "aws_s3_bucket_public_access_block" "snyk_private" {
   ignore_public_acls  = true
   block_public_acls   = true
   block_public_policy = true
+}
+resource "aws_s3_bucket_versioning" "my_aws_s3_bucket_versioning_aws_s3_bucket_snyk_storage" {
+  bucket = aws_s3_bucket.snyk_storage.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+resource "aws_s3_bucket_versioning" "my_aws_s3_bucket_versioning_aws_s3_bucket_my-new-undeployed-bucket" {
+  bucket = aws_s3_bucket.my-new-undeployed-bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
 }
